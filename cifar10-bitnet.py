@@ -1,4 +1,5 @@
 import argparse
+import csv
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -118,14 +119,21 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(net.parameters(), lr=args.lr)
 
-    start_epoch = 1
-    for epoch in range(start_epoch, start_epoch + args.epoch):
-        train_metrics = train(net, optimizer, criterion, train_loader, args.device)
+    with open("result.csv", "w", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["epoch", "trn_acc", "trn_loss", "tst_acc", "tst_loss"])
 
-        test_metrics = test(net, criterion, test_loader, args.device)
+        start_epoch = 1
+        for epoch in range(start_epoch, start_epoch + args.epoch):
+            train_metrics = train(net, optimizer, criterion, train_loader, args.device)
 
-        print("[Epoch-%03d] train: ACC=%.2f / LOSS=%f  valid: ACC=%.2f / LOSS=%f" %
-              (epoch, train_metrics["acc"], train_metrics["loss"], test_metrics["acc"], test_metrics["loss"]))
+            test_metrics = test(net, criterion, test_loader, args.device)
+
+            print("[Epoch-%03d] train: ACC=%.2f / LOSS=%f  valid: ACC=%.2f / LOSS=%f" %
+                  (epoch, train_metrics["acc"], train_metrics["loss"], test_metrics["acc"], test_metrics["loss"]))
+            writer.writerow([
+                epoch, train_metrics["acc"], train_metrics["loss"], test_metrics["acc"], test_metrics["loss"]
+            ])
 
 
 if __name__ == "__main__":
